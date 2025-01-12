@@ -4,10 +4,11 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Habilitar CORS para todos los dominios
 app.use(cors());
 app.use(express.json());
 
-// Ruta principal de tu API
+// Endpoint
 app.post('/analizar', async (req, res) => {
     const { urls } = req.body;
 
@@ -25,5 +26,5 @@ app.post('/analizar', async (req, res) => {
 
 // Iniciar servidor
 app.listen(port, () => {
-    console.log(`Servidor API ejecutándose en el puerto ${port}`);
+    console.log(`Servidor ejecutándose en el puerto ${port}`);
 });
