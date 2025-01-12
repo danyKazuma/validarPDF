@@ -19,7 +19,7 @@ async function obtenerArchivo(url) {
 }
 
 // Ruta POST para recibir las URLs y devolver los resultados
-app.post('/analizar-archivos', async (req, res) => {
+app.post('/analizar', async (req, res) => {
     const urls = req.body.urls;  // Se espera que el cuerpo de la solicitud tenga un campo 'urls'
 
     if (!urls || !Array.isArray(urls)) {
