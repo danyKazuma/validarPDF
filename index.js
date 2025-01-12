@@ -1,54 +1,49 @@
 const express = require('express');
 const axios = require('axios');
-
-// Crear una instancia de Express
+const cors = require('cors');
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Usamos middleware para que Express pueda procesar los datos en formato JSON
+// Habilitar CORS para todos los orígenes
+app.use(cors());
+
+// Middleware para analizar JSON
 app.use(express.json());
 
-// Función para obtener las propiedades de un archivo
-async function obtenerArchivo(url) {
-    try {
-        const response = await axios.head(url);  // Usamos HEAD para obtener solo los encabezados
-        const size = response.headers['content-length'];  // Obtener el tamaño desde los encabezados
-
-        // Capturar el texto después de "Orders/" hasta el segundo "_"
-        const regex = /https:\/\/storage.googleapis.com\/liquidacionconvenios-prd\/Orders\/([^_]+_[^_]+)_/;
-        const match = url.match(regex);
-
-        // Capturar el identificador extraído
-        const identificador = match ? match[1] : "No identificado";
-
-        return { url, size, identificador };
-    } catch (error) {
-        console.error('Error al obtener el archivo:', error.message);
-        return { url, error: 'No se pudo obtener el archivo' };
-    }
-}
-
-// Ruta POST para recibir las URLs y devolver los resultados
+// Ruta para analizar las URLs de los archivos
 app.post('/analizar-archivos', async (req, res) => {
-    const urls = req.body.urls;  // Se espera que el cuerpo de la solicitud tenga un campo 'urls'
+    const urls = req.body.urls; // Esperamos un array de URLs
+    
+    // Aquí puedes agregar la lógica para procesar las URLs
+    const results = [];
 
-    if (!urls || !Array.isArray(urls)) {
-        return res.status(400).json({ error: 'Por favor ingresa un array de URLs' });
-    }
-
-    const resultados = [];
-
-    // Procesamos cada URL
     for (const url of urls) {
-        const archivo = await obtenerArchivo(url);
-        resultados.push(archivo);
+        try {
+            const response = await axios.head(url);  // Obtener solo los encabezados
+            const size = response.headers['content-length'];  // Extraer el tamaño del archivo
+
+            // Extraer el identificador del archivo (de acuerdo a la lógica que mencionaste antes)
+            const fileName = url.split('Orders/')[1].split('_')[0];
+            
+            results.push({
+                url: url,
+                size: size,
+                identificador: fileName,
+            });
+        } catch (error) {
+            console.error('Error al procesar la URL:', url);
+            results.push({
+                url: url,
+                error: 'No se pudo obtener el archivo',
+            });
+        }
     }
 
-    // Devolvemos la respuesta en formato JSON
-    res.json(resultados);
+    // Enviar la respuesta al cliente
+    res.json(results);
 });
 
-// Configuramos el puerto donde se escucharán las peticiones
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto ${PORT}`);
+// Iniciar el servidor
+app.listen(port, () => {
+    console.log(`API en ejecución en http://localhost:${port}`);
 });
